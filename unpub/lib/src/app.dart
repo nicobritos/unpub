@@ -117,7 +117,7 @@ class App {
     return info.email!;
   }
 
-  Future<HttpServer> serve([String host = '0.0.0.0', int port = 4000]) async {
+  Future<HttpServer> serve({String host = '0.0.0.0', int port = 4000, Router? secondRouter}) async {
     var handler = const shelf.Pipeline()
         .addMiddleware(corsHeaders())
         .addMiddleware(shelf.logRequests())
@@ -125,6 +125,9 @@ class App {
       // Return 404 by default
       // https://github.com/google/dart-neats/issues/1
       var res = await router.call(req);
+      if (secondRouter != null && res.statusCode == 404) {
+        return await secondRouter.call(req);
+      }
       return res;
     });
     var server = await shelf_io.serve(handler, host, port);
